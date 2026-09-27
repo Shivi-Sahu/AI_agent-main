@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevPilot | AI Software Engineer Agent</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navbar -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>DevPilot</h1>
+          <span class="badge track-badge">AI Software Engineer</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div id="backend-status" class="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">Checking backend...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+      <!-- Input Card -->
+      <section class="card input-card">
+        <div class="card-header">
+          <h2>Analyze GitHub Issue</h2>
+          <p class="subtitle">Provide repository details to run DevPilot's deep software engineering analysis.</p>
+        </div>
+
+        <form id="analyze-form">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="owner">GitHub Owner / Org</label>
+              <input type="text" id="owner" name="owner" placeholder="e.g. spring-projects" required autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="input-group">
+              <label for="repository">Repository</label>
+              <input type="text" id="repository" name="repository" placeholder="e.g. spring-boot" required autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="input-group">
+              <label for="issueNumber">Issue Number</label>
+              <input type="number" id="issueNumber" name="issueNumber" placeholder="e.g. 40000" min="1" required>
+            </div>
+          </div>
+
+          <!-- Quick Samples -->
+          <div class="quick-samples">
+            <span class="samples-label">Quick Examples:</span>
+            <button type="button" class="sample-btn" data-owner="facebook" data-repo="react" data-issue="28000">React #28000</button>
+            <button type="button" class="sample-btn" data-owner="spring-projects" data-repo="spring-boot" data-issue="35000">Spring Boot #35000</button>
+            <button type="button" class="sample-btn" data-owner="vuejs" data-repo="core" data-issue="10000">Vue #10000</button>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="btn btn-primary">
+              <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Analyze Issue</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Loading State -->
+      <section id="loading-state" class="card loading-card hidden">
+        <div class="spinner-container">
+          <div class="radar-spinner"></div>
+        </div>
+        <h3 id="loading-title">DevPilot is analyzing the issue...</h3>
+        <p class="loading-subtitle">Fetching repository data and running AI Software Engineer evaluation</p>
+        <div class="progress-steps">
+          <div class="step-item active">
+            <span class="step-dot"></span>
+            <span>1. Fetching GitHub issue & comments</span>
+          </div>
+          <div class="step-item active">
+            <span class="step-dot"></span>
+            <span>2. Formulating software engineering context</span>
+          </div>
+          <div class="step-item active">
+            <span class="step-dot"></span>
+            <span>3. Generating root cause & implementation plan</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error State -->
+      <section id="error-state" class="card error-card hidden">
+        <div class="error-header">
+          <div class="error-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="error-details">
+            <h3 id="error-title">Analysis Failed</h3>
+            <p id="error-message">Something went wrong while processing the issue.</p>
+          </div>
+        </div>
+        <div class="error-help" id="error-help">
+          <p><strong>Troubleshooting:</strong></p>
+          <ul>
+            <li>Verify that the owner, repository, and issue number exist on GitHub.</li>
+            <li>Ensure <code>OPENAI_API_KEY</code> is set in your environment or <code>.env</code> file.</li>
+            <li>If GitHub rate limits are encountered, supply a <code>GITHUB_TOKEN</code>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Results Dashboard -->
+      <section id="results-dashboard" class="results-container hidden">
+        <!-- Metadata Header Bar -->
+        <div class="card meta-card">
+          <div class="meta-main">
+            <div class="meta-badges">
+              <span id="res-state-badge" class="badge status-open">OPEN</span>
+              <span id="res-repo-tag" class="meta-tag">owner/repo#0</span>
+            </div>
+            <h2 id="res-issue-title">Issue Title Placeholder</h2>
+            <div id="res-labels" class="labels-list"></div>
+          </div>
+          <div class="meta-actions">
+            <a id="res-github-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span>View on GitHub</span>
+            </a>
+            <button id="copy-markdown-btn" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Markdown</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-Column Grid -->
+        <div class="analysis-grid">
+          <!-- Problem Summary -->
+          <div class="card analysis-card">
+            <div class="card-title">
+              <div class="icon-circle icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <h3>1. Problem Summary</h3>
+            </div>
+            <p id="res-summary" class="prose-text"></p>
+          </div>
+
+          <!-- Likely Root Cause -->
+          <div class="card analysis-card">
+            <div class="card-title">
+              <div class="icon-circle icon-amber">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <h3>2. Likely Root Cause</h3>
+            </div>
+            <p id="res-root-cause" class="prose-text"></p>
+          </div>
+
+          <!-- Recommended Implementation -->
+          <div class="card analysis-card full-width">
+            <div class="card-title">
+              <div class="icon-circle icon-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+              </div>
+              <h3>3. Recommended Implementation Plan</h3>
+            </div>
+            <ol id="res-implementation-plan" class="plan-list"></ol>
+          </div>
+
+          <!-- Potential Files & Classes -->
+          <div class="card analysis-card">
+            <div class="card-title">
+              <div class="icon-circle icon-emerald">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </div>
+              <h3>4. Potential Files / Classes</h3>
+            </div>
+            <div id="res-potential-files" class="files-list"></div>
+          </div>
+
+          <!-- Testing Strategy -->
+          <div class="card analysis-card">
+            <div class="card-title">
+              <div class="icon-circle icon-cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 2v7.31"></path>
+                  <path d="M14 9.3V1.99"></path>
+                  <path d="M8.5 2h7"></path>
+                  <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+                  <path d="M5.52 16h12.96"></path>
+                </svg>
+              </div>
+              <h3>5. Testing Strategy</h3>
+            </div>
+            <ul id="res-testing-strategy" class="checklist"></ul>
+          </div>
+
+          <!-- Next Steps -->
+          <div class="card analysis-card full-width">
+            <div class="card-title">
+              <div class="icon-circle icon-rose">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+              </div>
+              <h3>6. Next Steps</h3>
+            </div>
+            <ul id="res-next-steps" class="next-steps-list"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>DevPilot • Powered by Spring Boot 3.3, Spring AI & OpenAI • Track 1: AI Software Engineer</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
